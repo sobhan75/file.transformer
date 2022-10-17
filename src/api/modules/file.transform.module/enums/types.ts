@@ -1,3 +1,3 @@
 export enum typeEnum {
-  IMAGE = "image",
+  IMAGE = "Image",
 }

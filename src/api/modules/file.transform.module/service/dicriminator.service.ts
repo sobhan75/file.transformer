@@ -4,46 +4,74 @@ import { UserPass } from "../dto/user.password.dto";
 import { imageMetadataExtract } from "../helperfunctions/image-meta-extractor";
 import { hashPassword } from "../helperfunctions/hash-password-creator";
 import { md5Hash } from "../helperfunctions/md5-hash-creator";
-import { ImageSaverService } from "./indatabase-image-saver.service";
+import { ImageSaverService } from "./indatabase-saver.service";
 import { ResponseDto } from "../dto/response.dto";
-type FileProcessorHelper = (file: Buffer) => Record<string, string | number>;
-type FileSaver = (
-  meta: Record<string, number | string | Express.Multer.File>
-) => Promise<ResponseDto>;
+import { applicationMimeTypeExtract } from "../helperfunctions/application-mimetype-extractor";
+import { InjectModel } from "@nestjs/mongoose";
+import { Image } from "../model/image.schema";
+import { Model } from "mongoose";
+import { FileMedia } from "../model/file.schema";
+type FileProcessorHelper = (file?: Buffer) => Record<string, string | number>;
 enum Media {
   IMAGE = "image",
   VIDEO = "video",
+  APPLICATION = "application",
 }
 @Injectable()
 export class DiscriminateService {
-  constructor(private imageSaverService: ImageSaverService) {}
+  constructor(
+    private imageSaverService: ImageSaverService,
+    @InjectModel(Image.name) private imageModel: Model<Image>,
+    @InjectModel(FileMedia.name) private fileMediaModel: Model<FileMedia>
+  ) {}
 
   async mimeTypeDiscriminator(
     file: Express.Multer.File,
     password: UserPass
-  ): Promise<void> {
+  ): Promise<ResponseDto> {
     const fileMainType = file.mimetype.split("/")[0];
     //mapping maintypes to proper methods
     const mediaMap: {
-      [k in Media]?: { saver: FileSaver; meta: FileProcessorHelper };
+      [k in Media]?: {
+        meta: FileProcessorHelper;
+        mongoModel: Model<Image> | Model<FileMedia>;
+      };
     } = {
       [Media.IMAGE]: {
         meta: imageMetadataExtract,
-        saver: this.imageSaverService.saveToDatabase,
+        mongoModel: this.imageModel,
+      },
+      [Media.APPLICATION]: {
+        meta: applicationMimeTypeExtract,
+        mongoModel: this.fileMediaModel,
       },
     };
     if (!mediaMap[fileMainType]) {
-      throw new BadRequestException("MimeType not supported!");
+      throw new BadRequestException();
     }
-    //passing individual media metadata to database saver
     const metadata = mediaMap[fileMainType].meta(file.buffer);
+    // console.log(metadata);
+
     const fileHash = md5Hash(file.buffer);
     const hashedPassword = await hashPassword(password.password);
-    mediaMap[fileMainType].saver({
-      uID: fileHash,
-      Hpassword: hashedPassword,
-      meta: metadata,
-      multerData: file,
-    });
+    // if (metadata === undefined) {
+    //   return this.imageSaverService.saveToDatabase({
+    //     uID: fileHash,
+    //     MimeType: file.mimetype,
+    //     hashedPassword,
+    //     size: file.size,
+    //   });
+    // }
+    return this.imageSaverService.saveToDatabase(
+      {
+        uID: fileHash,
+        MimeType: file.mimetype,
+        hashedPassword,
+        size: file.size,
+        ...metadata,
+      },
+      mediaMap[fileMainType].mongoModel,
+      file.buffer
+    );
   }
 }

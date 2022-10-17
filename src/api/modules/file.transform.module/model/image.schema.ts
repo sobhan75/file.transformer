@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { FileMedia } from "./file.schema";
 @Schema()
 export class Image {
+  // media: string;
 
   @Prop({ type: Number, required: true })
   height: number;

@@ -9,13 +9,13 @@ import { MongooseModule } from "@nestjs/mongoose";
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    ApiModule,
     MongooseModule.forRootAsync({
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         return { uri: configService.get("MONGO_URI") };
       },
     }),
+    ApiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
