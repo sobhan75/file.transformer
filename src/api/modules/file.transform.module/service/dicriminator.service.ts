@@ -4,7 +4,7 @@ import { UserPass } from "../dto/user.password.dto";
 import { imageMetadataExtract } from "../helperfunctions/image-meta-extractor";
 import { hashPassword } from "../helperfunctions/hash-password-creator";
 import { md5Hash } from "../helperfunctions/md5-hash-creator";
-import { ImageSaverService } from "./indatabase-saver.service";
+import { SaverService } from "./indatabase-saver.service";
 import { ResponseDto } from "../dto/response.dto";
 import { applicationMimeTypeExtract } from "../helperfunctions/application-mimetype-extractor";
 import { InjectModel } from "@nestjs/mongoose";
@@ -20,7 +20,7 @@ enum Media {
 @Injectable()
 export class DiscriminateService {
   constructor(
-    private imageSaverService: ImageSaverService,
+    private saverService: SaverService,
     @InjectModel(Image.name) private imageModel: Model<Image>,
     @InjectModel(FileMedia.name) private fileMediaModel: Model<FileMedia>
   ) {}
@@ -29,6 +29,9 @@ export class DiscriminateService {
     file: Express.Multer.File,
     password: UserPass
   ): Promise<ResponseDto> {
+    if (!file) {
+      throw new BadRequestException();
+    }
     const fileMainType = file.mimetype.split("/")[0];
     //mapping maintypes to proper methods
     const mediaMap: {
@@ -62,7 +65,7 @@ export class DiscriminateService {
     //     size: file.size,
     //   });
     // }
-    return this.imageSaverService.saveToDatabase(
+    return this.saverService.saveToDatabase(
       {
         uID: fileHash,
         MimeType: file.mimetype,

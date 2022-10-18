@@ -4,9 +4,10 @@ import { DiscriminateService } from "./service/dicriminator.service";
 import { MongooseModule } from "@nestjs/mongoose";
 import { FileMedia, fileSchema } from "./model/file.schema";
 import { Image, imageSchema } from "./model/image.schema";
-import { ImageSaverService } from "./service/indatabase-saver.service";
+import { SaverService } from "./service/indatabase-saver.service";
 // import { typeEnum } from "./enums/types";
 import { ConfigService } from "@nestjs/config";
+import { FileDownloadService } from "./service/file-download.service";
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -18,6 +19,11 @@ import { ConfigService } from "@nestjs/config";
     ]),
   ],
   controllers: [FileController],
-  providers: [DiscriminateService, ImageSaverService, ConfigService],
+  providers: [
+    DiscriminateService,
+    SaverService,
+    ConfigService,
+    FileDownloadService,
+  ],
 })
 export class FileTransformerModule {}
