@@ -17,24 +17,23 @@ import { InputDto } from "../dto/credentials.dto";
 import { FileService } from "../service/file.service";
 @Controller("/files")
 export class FileController {
-  constructor(
-    private fileService: FileService
-  //private discriminateService: DiscriminateService,
-    // private fileDownloadService: FileDownloadService
-  ) {}
+  constructor(private fileService: FileService) {}
 
   @Post("/upload")
   @UseInterceptors(FileInterceptor("file"))
-  uploadFile(@UploadedFile() file: Express.Multer.File): ResponseDto {
-    return this.fileService.set(file);
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File
+  ): Promise<ResponseDto> {
+    return await this.fileService.set(file);
     // return this.discriminateService.mimeTypeDiscriminator(file, password);
   }
 
   @Get("/download")
-  downloadFile(
+  async downloadFile(
     @Res({ passthrough: true }) response: Response,
     @Query() input: InputDto
   ) {
     // return this.fileDownloadService.fetchFile(response, input);
+    return await this.fileService.get(input);
   }
 }

@@ -9,8 +9,10 @@ import { Image, imageSchema } from "./model/image.schema";
 import { ConfigService } from "@nestjs/config";
 // import { FileDownloadService } from "./service/file-download.service";
 import { FileService } from "./service/file.service";
+import { FileTypeService } from "./service/file-type.service";
 // import { FileTypeService } from "./service/file-type.service";
 // import { GetFileTypeService } from "./service/get-file-type.service";
+import { ImageFileTypeService } from "./service/image-file-type.service";
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -24,6 +26,8 @@ import { FileService } from "./service/file.service";
   controllers: [FileController],
   providers: [
     FileService,
+    FileTypeService,
+    ImageFileTypeService,
     //FileTypeService,
     //GetFileTypeService,
     // DiscriminateService,

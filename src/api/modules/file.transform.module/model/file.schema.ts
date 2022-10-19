@@ -17,9 +17,6 @@ export class FileMedia extends Base implements BaseInterface {
   size: number;
 
   @Prop({ type: String, required: true })
-  hashedPassword: string;
-
-  @Prop({ type: String, required: true })
   uID: string;
 }
 export const fileSchema = SchemaFactory.createForClass(FileMedia);
