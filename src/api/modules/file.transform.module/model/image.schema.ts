@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { FileMedia } from "./file.schema";
 @Schema()
-export class Image {
+export class Image extends FileMedia {
   // media: string;
 
   @Prop({ type: Number, required: true })

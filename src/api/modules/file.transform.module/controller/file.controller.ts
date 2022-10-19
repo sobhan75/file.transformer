@@ -2,7 +2,6 @@ import {
   Controller,
   UploadedFile,
   UseInterceptors,
-  Body,
   Res,
   Query,
   Post,
@@ -10,27 +9,25 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Express } from "express";
-import { DiscriminateService } from "../service/dicriminator.service";
-import { UserPass } from "../dto/user.password.dto";
+//import { DiscriminateService } from "../service/dicriminator.service";
 import { ResponseDto } from "../dto/response.dto";
 import type { Response } from "express";
 import { InputDto } from "../dto/credentials.dto";
-import { FileDownloadService } from "../service/file-download.service";
+//import { FileDownloadService } from "../service/file-download.service";
+import { FileService } from "../service/file.service";
 @Controller("/files")
 export class FileController {
   constructor(
-    private discriminateService: DiscriminateService,
-    private fileDownloadService: FileDownloadService
+    private fileService: FileService
+  //private discriminateService: DiscriminateService,
+    // private fileDownloadService: FileDownloadService
   ) {}
 
   @Post("/upload")
   @UseInterceptors(FileInterceptor("file"))
-  async uploadFile(
-    @UploadedFile() file: Express.Multer.File,
-    @Body()
-    password: UserPass
-  ): Promise<ResponseDto> {
-    return this.discriminateService.mimeTypeDiscriminator(file, password);
+  uploadFile(@UploadedFile() file: Express.Multer.File): ResponseDto {
+    return this.fileService.set(file);
+    // return this.discriminateService.mimeTypeDiscriminator(file, password);
   }
 
   @Get("/download")
@@ -38,6 +35,6 @@ export class FileController {
     @Res({ passthrough: true }) response: Response,
     @Query() input: InputDto
   ) {
-    return this.fileDownloadService.fetchFile(response, input);
+    // return this.fileDownloadService.fetchFile(response, input);
   }
 }
