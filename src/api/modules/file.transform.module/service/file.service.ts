@@ -8,9 +8,10 @@ import { InjectModel } from "@nestjs/mongoose";
 import { FileMedia } from "../model/file.schema";
 import { md5Hash } from "../helperfunctions/md5-hash-creator";
 import { ConfigService } from "@nestjs/config";
-import { Client } from "minio";
+import { minioClientMaker } from "../helperfunctions/minio-client-maker";
 import { saveToObjectStorage } from "../helperfunctions/object-storage-saver";
 import { InputDto } from "../dto/credentials.dto";
+import type { Response } from "express";
 export class FileService {
   constructor(
     private fileTypeService: FileTypeService,
@@ -18,18 +19,6 @@ export class FileService {
     @InjectModel(FileMedia.name) private fileMediaModel: Model<FileMedia>,
     private configService: ConfigService
   ) {}
-
-  minioClientMaker(): Client {
-    const accessKey = this.configService.get("ACCESS_KEY");
-    const secretKey = this.configService.get("SECRET_KEY");
-    const endpoint = this.configService.get("endpoint");
-    return new Client({
-      accessKey: accessKey,
-      secretKey: secretKey,
-      endPoint: endpoint,
-      useSSL: true,
-    });
-  }
 
   getFileTypeService(mimetype: Media): FileTypeService | ImageFileTypeService {
     const mediaMap: {
@@ -52,11 +41,12 @@ export class FileService {
     }
     const service = this.getFileTypeService(Media[mimeTypeFirstPart]);
     const extractedMetadata = service.extractMetaData(file);
-    const client = this.minioClientMaker();
+    const client = minioClientMaker();
     await saveToObjectStorage(client, file.buffer, fileHash);
     return await service.saveFileToDB({ ...extractedMetadata, uID: fileHash });
   }
-  get(input: InputDto) {
-    
+
+  async get(input: InputDto, response: Response) {
+    return await this.fileTypeService.getFile(input, response);
   }
 }

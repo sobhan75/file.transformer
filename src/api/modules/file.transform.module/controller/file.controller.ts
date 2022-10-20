@@ -34,6 +34,6 @@ export class FileController {
     @Query() input: InputDto
   ) {
     // return this.fileDownloadService.fetchFile(response, input);
-    return await this.fileService.get(input);
+    return await this.fileService.get(input, response);
   }
 }
